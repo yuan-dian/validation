@@ -20,8 +20,8 @@ class UserRequest {
 ```php
 require_once 'vendor/autoload.php';
 
-use Origin\Validator
-use Origin\exception\ValidateException;
+use yuandian\Validator
+use yuandian\exception\ValidateException;
 
 $request = new UserRequest();
 $request->name = '张三';
@@ -41,9 +41,9 @@ try {
 # 自动赋值&&自动验证
 - 定义实体文件 ```UserRequest.php```
 ```php
-use Origin\Attributes\NotEmpty;
-use Origin\Attributes\Email;
-use Origin\BaseEntity;
+use yuandian\attributes\NotEmpty;
+use yuandian\attributes\Email;
+use yuandian\BaseEntity;
 
 class UserRequest extends BaseEntity {
     #[NotEmpty(message: "Name cannot be empty.")]
@@ -59,7 +59,7 @@ class UserRequest extends BaseEntity {
 ```php
 require_once 'vendor/autoload.php';
 
-use Origin\exception\ValidateException;
+use yuandian\exception\ValidateException;
 
 // 模拟请求数据
 $requestData = [

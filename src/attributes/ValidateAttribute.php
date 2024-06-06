@@ -9,7 +9,7 @@
 // | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
-namespace origin\attributes;
+namespace yuandian\attributes;
 
 interface ValidateAttribute
 {

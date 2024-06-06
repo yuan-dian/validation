@@ -11,10 +11,10 @@
 
 declare (strict_types=1);
 
-namespace origin;
+namespace yuandian;
 
-use origin\attributes\ValidateAttribute;
-use origin\exception\ValidateException;
+use yuandian\attributes\ValidateAttribute;
+use yuandian\exception\ValidateException;
 use ReflectionClass;
 use ReflectionProperty;
 

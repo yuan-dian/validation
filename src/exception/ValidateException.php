@@ -11,7 +11,7 @@
 
 declare (strict_types = 1);
 
-namespace origin\exception;
+namespace yuandian\exception;
 
 /**
  * 数据验证异常

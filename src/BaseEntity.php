@@ -11,7 +11,7 @@
 
 declare (strict_types=1);
 
-namespace origin;
+namespace yuandian;
 
 use ReflectionClass;
 
