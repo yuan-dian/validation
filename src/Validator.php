@@ -68,7 +68,9 @@ class Validator
             $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
             if (!$instance->validate($value)) {
                 if ($this->batch) {
-                    $this->error[$property->getName()] = $instance->message;
+                    $key = $property->getName();
+                    $message = $this->error[$key] ?? '';
+                    $this->error[$key] = (empty($message) ? '' : $message . ';') . $instance->message;
                 } else {
                     throw new ValidateException($instance->message);
                 }
