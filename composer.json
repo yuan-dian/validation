@@ -1,5 +1,5 @@
 {
-  "name": "origin/validator",
+  "name": "yuandian/validator",
   "description": "Helpers for making PHP Attribute validator more lovable.",
   "type": "library",
   "keywords": [
@@ -8,7 +8,7 @@
   ],
   "authors": [
     {
-      "name": "origin",
+      "name": "yuandian",
       "email": "467490186@qq.com"
     }
   ],
