@@ -17,7 +17,7 @@ use ReflectionClass;
 
 abstract class BaseEntity
 {
-    public function __construct(protected array $data = [])
+    public function __construct(array $data = [])
     {
         $reflectionClass = new ReflectionClass($this);
         foreach ($reflectionClass->getProperties() as $property) {
