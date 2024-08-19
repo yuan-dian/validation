@@ -27,7 +27,9 @@ class Max implements ValidateAttribute
 
     public function validate(mixed $value): bool
     {
-        if (is_array($value)) {
+        if (is_numeric($value)) {
+            $length = $value;
+        } elseif (is_array($value)) {
             $length = count($value);
         } else {
             $length = mb_strlen((string)$value);
