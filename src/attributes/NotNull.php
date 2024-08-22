@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证不是null
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class NotNull implements ValidateAttribute
 {

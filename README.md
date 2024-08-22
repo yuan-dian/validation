@@ -43,9 +43,9 @@ try {
 ```php
 use yuandian\attributes\NotEmpty;
 use yuandian\attributes\Email;
-use yuandian\BaseEntity;
+use yuandian\BaseValidatorEntity;
 
-class UserRequest extends BaseEntity {
+class UserRequest extends BaseValidatorEntity {
     #[NotEmpty(message: "Name cannot be empty.")]
     public string $name;
 

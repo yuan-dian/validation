@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证时间格式
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class DateFormat implements ValidateAttribute
 {

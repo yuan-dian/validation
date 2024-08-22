@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证是否是url
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Url implements ValidateAttribute
 {

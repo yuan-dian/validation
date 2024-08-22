@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证正则
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Pattern implements ValidateAttribute
 {

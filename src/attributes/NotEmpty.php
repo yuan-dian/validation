@@ -24,10 +24,7 @@ class NotEmpty implements ValidateAttribute
 
     public function validate(mixed $value): bool
     {
-        if (empty($value)) {
-            return false;
-        }
-        return true;
+        return !empty($value) || '0' == $value;
     }
 
 }

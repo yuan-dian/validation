@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证是否是身份证
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class IdCard implements ValidateAttribute
 {

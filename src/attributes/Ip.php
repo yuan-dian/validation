@@ -15,6 +15,9 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证是否是IP地址
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Ip implements ValidateAttribute
 {

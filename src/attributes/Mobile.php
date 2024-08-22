@@ -15,13 +15,16 @@ namespace yuandian\attributes;
 
 use Attribute;
 
+/**
+ * 验证手机号码
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Mobile implements ValidateAttribute
 {
      private const rule = '/^1[3-9]\d{9}$/';
 
 
-    public function __construct(public string $message = "The mobile phone number is incorrect")
+    public function __construct(public string $message = "The value should be mobile phone number")
     {
     }
 
