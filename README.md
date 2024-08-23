@@ -74,3 +74,8 @@ try {
     echo "Validation errors: " . $e->getMessage() . "\n";
 }
 ```
+
+## 捐献
+
+![](./wechat.png)
+![](./alipay.png)
