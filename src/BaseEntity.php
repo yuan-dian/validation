@@ -18,13 +18,13 @@ use ReflectionException;
 use ReflectionProperty;
 use ReflectionUnionType;
 use yuandian\attributes\Trim;
-use yuandian\exception\ValidateException;
+use yuandian\exception\ParameterException;
 
 abstract class BaseEntity
 {
     /**
      * @param array $data
-     * @throws ReflectionException|ValidateException
+     * @throws ParameterException|ReflectionException|
      */
     public function __construct(array $data = [])
     {
@@ -35,7 +35,7 @@ abstract class BaseEntity
      * @param array $array
      * @param string|object $object
      * @return object
-     * @throws ValidateException|ReflectionException
+     * @throws ParameterException|ReflectionException
      * @date 2024/8/22 15:14
      * @author 原点 467490186@qq.com
      */
@@ -126,7 +126,7 @@ abstract class BaseEntity
      * @param string $key
      * @param mixed $value
      * @param array $types
-     * @throws ValidateException|ReflectionException
+     * @throws ParameterException|ReflectionException
      * @date 2024/8/28 11:23
      * @author 原点 467490186@qq.com
      */
@@ -144,10 +144,10 @@ abstract class BaseEntity
                     $object->$key = $this->arrayToObject($value, $typeName);
                     return;
                 }
-                throw new ValidateException("$key 类型不匹配");
+                throw new ParameterException("$key 类型不匹配");
             }
         }
-        throw new ValidateException("$key 类型不匹配");
+        throw new ParameterException("$key 类型不匹配");
     }
 
     /**
