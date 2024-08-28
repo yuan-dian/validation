@@ -14,6 +14,8 @@ declare (strict_types=1);
 namespace yuandian;
 
 use ReflectionClass;
+use ReflectionException;
+use ReflectionProperty;
 use ReflectionUnionType;
 use yuandian\attributes\Trim;
 use yuandian\exception\ValidateException;
@@ -21,28 +23,26 @@ use yuandian\exception\ValidateException;
 abstract class BaseEntity
 {
     /**
-     * @throws \Exception
+     * @param array $data
+     * @throws ReflectionException|ValidateException
      */
     public function __construct(array $data = [])
     {
-        try {
-            $this->arrayToObject($data, $this);
-        } catch (\ReflectionException $e) {
-            throw new \Exception($e->getMessage());
-        }
+        $this->arrayToObject($data, $this);
     }
 
     /***
      * @param array $array
      * @param string|object $object
      * @return object
-     * @throws \ReflectionException
+     * @throws ValidateException|ReflectionException
      * @date 2024/8/22 15:14
      * @author 原点 467490186@qq.com
      */
     public function arrayToObject(array $array, string|object $object): object
     {
         $reflectionClass = new ReflectionClass($object);
+        // $object如果是字符串，创建对象
         if (is_string($object)) {
             $object = $reflectionClass->newInstanceWithoutConstructor();
         }
@@ -54,66 +54,36 @@ abstract class BaseEntity
             }
             $property = $reflectionClass->getProperty($key);
             $propertyType = $property->getType();
-            // 判断是否有Trim注解，自动去除空格
-            if (is_string($value)) {
-                $attributes = $property->getAttributes();
-                foreach ($attributes as $attribute) {
-                    if ($attribute->getName() === Trim::class) {
-                        $value = trim($value);
-                    }
-                }
+
+            // 自动去除空格的处理
+            if (is_string($value) && $this->hasTrimAttribute($property)) {
+                $value = trim($value);
             }
-            // 没有指定类型，直接赋值
-            if ($propertyType === null) {
+
+            // 无类型或空值处理
+            if ($propertyType === null || (is_null($value) && $propertyType->allowsNull())) {
                 $object->$key = $value;
                 continue;
             }
-            // 检查是否为可空类型
-            $isNullable = $propertyType->allowsNull();
 
-            // 如果值为 null 且属性允许 null，则直接赋值
-            if (is_null($value) && $isNullable) {
-                $object->$key = null;
-                continue;
-            }
             // 属性类型处理，支持联合类型处理
             $types = $propertyType instanceof ReflectionUnionType ? $propertyType->getTypes() : [$propertyType];
 
-            $typeNames = [];
-            foreach ($types as $type) {
-                $typeNames[] = $type->getName();
-            }
-
-            $valueTypeName = $this->getPhpTypeName($value);
-
-            if (in_array($valueTypeName, $typeNames)) {
+            // 优先匹配值的实际类型
+            if (in_array($this->getPhpTypeName($value), array_map(fn($type) => $type->getName(), $types))) {
                 $object->$key = $value;
                 continue;
             }
-            foreach ($types as $type) {
-                $typeName = $type->getName();
-                if ($type->isBuiltin()) {
-                    try {
-                        settype($value, $typeName);
-                        $object->$key = $value;
-                    } catch (\Exception) {
-                        throw new ValidateException("$key 类型不匹配");
-                    }
-                    break;
-                } elseif (class_exists($typeName)) {
-                    if (!is_array($value)) {
-                        throw new ValidateException("$key 类型不匹配");
-                    }
-                    $object->$key = $this->arrayToObject($value, $typeName);
-                    break;
-                }
-            }
+            // 类型转换处理
+            $this->assignConvertedValue($object, $key, $value, $types);
         }
 
         return $object;
     }
 
     /**
+     * 获取PHP的原生类型名称
+     *
      * @param $value
      * @return string
      * @date 2024/8/23 11:57
@@ -129,6 +99,69 @@ abstract class BaseEntity
             'NULL' => 'null',
             default => $type,
         };
+    }
+
+    /**
+     * 判断属性是否有Trim注解
+     *
+     * @param ReflectionProperty $property
+     * @return bool
+     * @date 2024/8/28 11:30
+     * @author 原点 467490186@qq.com
+     */
+    private function hasTrimAttribute(ReflectionProperty $property): bool
+    {
+        return count(
+                array_filter(
+                    $property->getAttributes(),
+                    fn($attr) => $attr->getName() === Trim::class
+                )
+            ) > 0;
+    }
+
+    /**
+     * 根据类型转换值并赋值给对象
+     *
+     * @param object $object
+     * @param string $key
+     * @param mixed $value
+     * @param array $types
+     * @throws ValidateException|ReflectionException
+     * @date 2024/8/28 11:23
+     * @author 原点 467490186@qq.com
+     */
+    private function assignConvertedValue(object $object, string $key, mixed $value, array $types): void
+    {
+        foreach ($types as $type) {
+            $typeName = $type->getName();
+            if ($type->isBuiltin()) {
+                if ($this->trySetType($value, $typeName)) {
+                    $object->$key = $value;
+                    return;
+                }
+            } elseif (class_exists($typeName)) {
+                if (is_array($value)) {
+                    $object->$key = $this->arrayToObject($value, $typeName);
+                    return;
+                }
+                throw new ValidateException("$key 类型不匹配");
+            }
+        }
+        throw new ValidateException("$key 类型不匹配");
+    }
+
+    /**
+     * 尝试转换并设置类型
+     *
+     * @param mixed $value
+     * @param string $typeName
+     * @return bool
+     * @date 2024/8/28 11:30
+     * @author 原点 467490186@qq.com
+     */
+    private function trySetType(mixed &$value, string $typeName): bool
+    {
+        return settype($value, $typeName);
     }
 
 }
