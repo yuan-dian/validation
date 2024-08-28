@@ -15,6 +15,7 @@ namespace yuandian;
 
 use ReflectionClass;
 use ReflectionUnionType;
+use yuandian\attributes\Trim;
 use yuandian\exception\ValidateException;
 
 abstract class BaseEntity
@@ -47,53 +48,64 @@ abstract class BaseEntity
         }
 
         foreach ($array as $key => $value) {
-            if ($reflectionClass->hasProperty($key)) {
-                $property = $reflectionClass->getProperty($key);
-                $propertyType = $property->getType();
-                // 没有指定类型，直接赋值
-                if ($propertyType === null) {
-                    $object->$key = $value;
-                    continue;
-                }
-                // 检查是否为可空类型
-                $isNullable = $propertyType->allowsNull();
-
-                // 如果值为 null 且属性允许 null，则直接赋值
-                if (is_null($value) && $isNullable) {
-                    $object->$key = null;
-                    continue;
-                }
-                // 属性类型处理，支持联合类型处理
-                $types = $propertyType instanceof ReflectionUnionType ? $propertyType->getTypes() : [$propertyType];
-
-                $typeNames = [];
-                foreach ($types as $type) {
-                    $typeNames[] = $type->getName();
-                }
-
-                $valueTypeName = $this->getPhpTypeName($value);
-
-                if (in_array($valueTypeName, $typeNames)) {
-                    $object->$key = $value;
-                    continue;
-                }
-                foreach ($types as $type) {
-                    $typeName = $type->getName();
-                    if ($type->isBuiltin()) {
-                        try {
-                            settype($value, $typeName);
-                            $object->$key = $value;
-                        } catch (\Exception $exception) {
-                            throw new ValidateException("$key 类型不匹配");
-                        }
-                        break;
-                    } elseif (class_exists($typeName)) {
-                        if (!is_array($value)) {
-                            throw new ValidateException("$key 类型不匹配");
-                        }
-                        $object->$key = $this->arrayToObject($value, $typeName);
-                        break;
+            // 判断属性是否定义
+            if (!$reflectionClass->hasProperty($key)) {
+                continue;
+            }
+            $property = $reflectionClass->getProperty($key);
+            $propertyType = $property->getType();
+            // 判断是否有Trim注解，自动去除空格
+            if (is_string($value)) {
+                $attributes = $property->getAttributes();
+                foreach ($attributes as $attribute) {
+                    if ($attribute->getName() === Trim::class) {
+                        $value = trim($value);
                     }
+                }
+            }
+            // 没有指定类型，直接赋值
+            if ($propertyType === null) {
+                $object->$key = $value;
+                continue;
+            }
+            // 检查是否为可空类型
+            $isNullable = $propertyType->allowsNull();
+
+            // 如果值为 null 且属性允许 null，则直接赋值
+            if (is_null($value) && $isNullable) {
+                $object->$key = null;
+                continue;
+            }
+            // 属性类型处理，支持联合类型处理
+            $types = $propertyType instanceof ReflectionUnionType ? $propertyType->getTypes() : [$propertyType];
+
+            $typeNames = [];
+            foreach ($types as $type) {
+                $typeNames[] = $type->getName();
+            }
+
+            $valueTypeName = $this->getPhpTypeName($value);
+
+            if (in_array($valueTypeName, $typeNames)) {
+                $object->$key = $value;
+                continue;
+            }
+            foreach ($types as $type) {
+                $typeName = $type->getName();
+                if ($type->isBuiltin()) {
+                    try {
+                        settype($value, $typeName);
+                        $object->$key = $value;
+                    } catch (\Exception) {
+                        throw new ValidateException("$key 类型不匹配");
+                    }
+                    break;
+                } elseif (class_exists($typeName)) {
+                    if (!is_array($value)) {
+                        throw new ValidateException("$key 类型不匹配");
+                    }
+                    $object->$key = $this->arrayToObject($value, $typeName);
+                    break;
                 }
             }
         }
