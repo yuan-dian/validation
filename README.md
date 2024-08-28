@@ -32,7 +32,7 @@ try {
    
     $validator->validate($userRequest);
     // 批量验证
-    // $validator->batch(true)->validate($userRequest)
+    // $validator->batch(true)->validate($userRequest);
 } catch (ValidateException $e) {
     echo "Validation errors: " . $e->getMessage() . "\n";
 }

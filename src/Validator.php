@@ -13,10 +13,10 @@ declare (strict_types=1);
 
 namespace yuandian;
 
-use yuandian\attributes\ValidateAttribute;
-use yuandian\exception\ValidateException;
 use ReflectionClass;
 use ReflectionProperty;
+use yuandian\attributes\ValidateAttribute;
+use yuandian\exception\ValidateException;
 
 class Validator
 {
@@ -57,27 +57,32 @@ class Validator
         foreach ($reflectionClass->getProperties() as $property) {
             $this->validateProperty($entity, $property);
         }
+        if (!empty($this->error)) {
+            throw new ValidateException($this->error);
+        }
     }
 
     public function validateProperty(object $entity, ReflectionProperty $property): void
     {
         $attributes = $property->getAttributes();
+        $key = $property->getName();
         foreach ($attributes as $attribute) {
             /**  @var ValidateAttribute $instance */
             $instance = $attribute->newInstance();
+            if (!$instance instanceof ValidateAttribute) {
+                continue;
+            }
             $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
             if (!$instance->validate($value)) {
                 if ($this->batch) {
-                    $key = $property->getName();
-                    $message = $this->error[$key] ?? '';
-                    $this->error[$key] = (empty($message) ? '' : $message . ';') . $instance->message;
+                    $this->error[$key][] = $instance->message;
                 } else {
                     throw new ValidateException($instance->message);
                 }
             }
         }
-        if (!empty($this->error)) {
-            throw new ValidateException($this->error);
+        if (isset($this->error[$key])) {
+            $this->error[$key] = implode(' & ', $this->error[$key]);
         }
     }
 }
