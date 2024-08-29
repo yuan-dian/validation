@@ -56,7 +56,7 @@ abstract class BaseEntity
             $propertyType = $property->getType();
 
             // 自动去除空格的处理
-            if (is_string($value) && $this->hasTrimAttribute($property)) {
+            if (is_string($value) && !empty($property->getAttributes(Trim::class))) {
                 $value = trim($value);
             }
 
@@ -99,24 +99,6 @@ abstract class BaseEntity
             'NULL' => 'null',
             default => $type,
         };
-    }
-
-    /**
-     * 判断属性是否有Trim注解
-     *
-     * @param ReflectionProperty $property
-     * @return bool
-     * @date 2024/8/28 11:30
-     * @author 原点 467490186@qq.com
-     */
-    private function hasTrimAttribute(ReflectionProperty $property): bool
-    {
-        return count(
-                array_filter(
-                    $property->getAttributes(),
-                    fn($attr) => $attr->getName() === Trim::class
-                )
-            ) > 0;
     }
 
     /**
