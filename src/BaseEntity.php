@@ -134,17 +134,16 @@ abstract class BaseEntity
     {
         foreach ($types as $type) {
             $typeName = $type->getName();
-            if ($type->isBuiltin()) {
-                if ($this->trySetType($value, $typeName)) {
+            try {
+                if ($type->isBuiltin() && $this->trySetType($value, $typeName)) {
                     $object->$key = $value;
                     return;
-                }
-            } elseif (class_exists($typeName)) {
-                if (is_array($value)) {
+                } elseif (class_exists($typeName) && is_array($value)) {
                     $object->$key = $this->arrayToObject($value, $typeName);
                     return;
                 }
-                throw new ParameterException("$key 类型不匹配");
+            } catch (\Throwable $e) {
+                // 类型转失败，尝试下一个类型
             }
         }
         throw new ParameterException("$key 类型不匹配");
