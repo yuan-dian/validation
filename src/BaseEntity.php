@@ -15,7 +15,6 @@ namespace yuandian;
 
 use ReflectionClass;
 use ReflectionException;
-use ReflectionProperty;
 use ReflectionUnionType;
 use yuandian\attributes\Trim;
 use yuandian\exception\ParameterException;
@@ -42,13 +41,13 @@ abstract class BaseEntity
     public function arrayToObject(array $array, string|object $object): object
     {
         $reflectionClass = new ReflectionClass($object);
-        // $object如果是字符串，创建对象
+        // 如果$object是字符串，则创建一个新的实例
         if (is_string($object)) {
             $object = $reflectionClass->newInstanceWithoutConstructor();
         }
 
         foreach ($array as $key => $value) {
-            // 判断属性是否定义
+            // 检查属性是否定义
             if (!$reflectionClass->hasProperty($key)) {
                 continue;
             }
@@ -60,7 +59,7 @@ abstract class BaseEntity
                 $value = trim($value);
             }
 
-            // 无类型或空值处理
+            // 处理无类型或空值的情况
             if ($propertyType === null || (is_null($value) && $propertyType->allowsNull())) {
                 $object->$key = $value;
                 continue;
@@ -117,7 +116,7 @@ abstract class BaseEntity
         foreach ($types as $type) {
             $typeName = $type->getName();
             try {
-                if ($type->isBuiltin() && $this->trySetType($value, $typeName)) {
+                if ($this->isConvertible($this->getPhpTypeName($value), $typeName) && settype($value, $typeName)) {
                     $object->$key = $value;
                     return;
                 } elseif (class_exists($typeName) && is_array($value)) {
@@ -131,18 +130,23 @@ abstract class BaseEntity
         throw new ParameterException("$key 类型不匹配");
     }
 
-    /**
-     * 尝试转换并设置类型
-     *
-     * @param mixed $value
-     * @param string $typeName
-     * @return bool
-     * @date 2024/8/28 11:30
-     * @author 原点 467490186@qq.com
-     */
-    private function trySetType(mixed &$value, string $typeName): bool
+    private function isConvertible(string $sourceType, string $targetType): bool
     {
-        return settype($value, $typeName);
+        $conversionTable = [
+            'int'    => ['float', 'string', 'bool'],
+            'float'  => ['int', 'string', 'bool'],
+            'string' => ['int', 'float', 'bool'],
+            'bool'   => ['int', 'float', 'string'],
+            'array'  => ['object'],
+            'object' => ['array', 'string'],
+            'null'   => ['int', 'float', 'string', 'bool', 'array', 'object'],
+        ];
+
+        if ($sourceType === $targetType) {
+            return true; // 同一类型可以转换
+        }
+
+        return in_array($targetType, $conversionTable[$sourceType] ?? [], true);
     }
 
 }
