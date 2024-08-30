@@ -31,6 +31,8 @@ abstract class BaseEntity
     }
 
     /***
+     * 数组转对象
+     *
      * @param array $array
      * @param string|object $object
      * @return object
@@ -130,6 +132,15 @@ abstract class BaseEntity
         throw new ParameterException("$key 类型不匹配");
     }
 
+    /**
+     * 检查类型是否可以转换
+     *
+     * @param string $sourceType
+     * @param string $targetType
+     * @return bool
+     * @date 2024/8/30 09:32
+     * @author 原点 467490186@qq.com
+     */
     private function isConvertible(string $sourceType, string $targetType): bool
     {
         $conversionTable = [
