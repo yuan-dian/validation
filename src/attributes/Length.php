@@ -33,7 +33,7 @@ class Length implements ValidateAttribute
 
     public function validate(mixed $value): bool
     {
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             $length = $value;
         } elseif (is_array($value)) {
             $length = count($value);
@@ -41,6 +41,6 @@ class Length implements ValidateAttribute
             $length = mb_strlen((string)$value);
         }
 
-        return $length >= $this->min && $length >= $this->max;
+        return $length >= $this->min && $length <= $this->max;
     }
 }
