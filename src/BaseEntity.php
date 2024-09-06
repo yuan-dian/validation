@@ -23,11 +23,13 @@ abstract class BaseEntity
 {
     /**
      * @param array $data
-     * @throws ParameterException|ReflectionException|
+     * @throws ParameterException|ReflectionException
      */
     public function __construct(array $data = [])
     {
-        $this->arrayToObject($data, $this);
+        if (empty($data)) {
+            $this->arrayToObject($data, $this);
+        }
     }
 
     /***
@@ -143,6 +145,9 @@ abstract class BaseEntity
      */
     private function isConvertible(string $sourceType, string $targetType): bool
     {
+        if ($sourceType === $targetType) {
+            return true; // 同一类型可以转换
+        }
         $conversionTable = [
             'int'    => ['float', 'string', 'bool'],
             'float'  => ['int', 'string', 'bool'],
@@ -152,10 +157,6 @@ abstract class BaseEntity
             'object' => ['array', 'string'],
             'null'   => ['int', 'float', 'string', 'bool', 'array', 'object'],
         ];
-
-        if ($sourceType === $targetType) {
-            return true; // 同一类型可以转换
-        }
 
         return in_array($targetType, $conversionTable[$sourceType] ?? [], true);
     }
