@@ -1,8 +1,15 @@
 # 参数验证 validator
- 使用PHP原生属性进行参数校验
+
+使用PHP原生属性进行参数校验
+
+# 安装
+
+``` composer require yuandian/validator ```
 
 # 使用示例
- - 定义实体文件 ```UserRequest.php```
+
+- 定义实体文件 ```UserRequest.php```
+
 ```php
 use Origin\Attributes\NotEmpty;
 use Origin\Attributes\Email;
@@ -16,7 +23,9 @@ class UserRequest {
     public string $email;
 }
 ```
+
 - 赋值与验证
+
 ```php
 require_once 'vendor/autoload.php';
 
@@ -39,7 +48,9 @@ try {
 ```
 
 # 自动赋值&&自动验证
+
 - 定义实体文件 ```UserRequest.php```
+
 ```php
 use yuandian\attributes\NotEmpty;
 use yuandian\attributes\Email;
@@ -56,6 +67,7 @@ class UserRequest extends BaseValidatorEntity {
 ```
 
 - 赋值与验证
+
 ```php
 require_once 'vendor/autoload.php';
 
