@@ -4,7 +4,8 @@
   "type": "library",
   "keywords": [
     "php",
-    "validator"
+    "validator",
+    "attribute"
   ],
   "license": "MIT",
   "authors": [
