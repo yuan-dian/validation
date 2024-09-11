@@ -11,9 +11,12 @@
 - 定义实体文件 ```UserRequest.php```
 
 ```php
-use Origin\Attributes\NotEmpty;
-use Origin\Attributes\Email;
+use yuandian\attributes\NotEmpty;
+use yuandian\attributes\Email;
+use yuandian\attributes\Scene;
 
+// 用于配置场景验证
+#[Scene("add",  ['name'])]
 class UserRequest {
     #[NotEmpty(message: "Name cannot be empty.")]
     public string $name;
@@ -42,6 +45,8 @@ try {
     $validator->validate($userRequest);
     // 批量验证
     // $validator->batch(true)->validate($userRequest);
+    // 场景验证
+    // $validator->validate($userRequest, 'add');
 } catch (ValidateException $e) {
     echo "Validation errors: " . $e->getMessage() . "\n";
 }

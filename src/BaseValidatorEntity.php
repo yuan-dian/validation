@@ -13,12 +13,11 @@ declare (strict_types=1);
 
 namespace yuandian;
 
-use ReflectionClass;
-
 abstract class BaseValidatorEntity extends BaseEntity
 {
     /**
-     * @throws \Exception
+     * @param array $data
+     * @throws \ReflectionException
      */
     public function __construct(array $data = [])
     {

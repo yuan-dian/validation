@@ -20,7 +20,7 @@ use yuandian\attributes\Trim;
 use yuandian\exception\ParameterException;
 
 /**
- * Bean工具类
+ * Bean 工具类
  */
 class BeanUtil
 {
@@ -123,7 +123,7 @@ class BeanUtil
                 // 类型转失败，尝试下一个类型
             }
         }
-        throw new ParameterException("$key 类型不匹配");
+        throw new ParameterException("$key Type mismatch");
     }
 
     /**
