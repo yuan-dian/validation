@@ -92,6 +92,11 @@ try {
 }
 ```
 
+# 自定义验证规则
+
+- 实现 `yuandian\attributes\ValidateAttribute`接口
+- 在自定义的类上增加`#[Attribute(Attribute::TARGET_PROPERTY)]`注解
+
 ## 捐献
 
 ![](./wechat.png)
