@@ -13,6 +13,7 @@ declare (strict_types=1);
 
 namespace yuandian;
 
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 use yuandian\attributes\Scene;
@@ -59,7 +60,6 @@ class Validator
 
         // 获取属性
         $properties = $this->getProperties($reflectionClass, $scene);
-
         // 验证属性
         foreach ($properties as $property) {
             $this->validateProperty($entity, $property);
@@ -83,7 +83,7 @@ class Validator
     {
         // 如果没有场景，直接返回所有属性
         if (empty($scene)) {
-            return $reflectionClass->getProperties();
+            return $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
         }
 
         // 获取场景注解
@@ -98,7 +98,10 @@ class Validator
         $properties = [];
         foreach ($scene_list[$scene] as $key) {
             if ($reflectionClass->hasProperty($key)) {
-                $properties[] = $reflectionClass->getProperty($key);
+                $reflectionProperty = $reflectionClass->getProperty($key);
+                if ($reflectionProperty->isPublic()) {
+                    $properties[] = $reflectionProperty;
+                }
             }
         }
 
@@ -137,14 +140,11 @@ class Validator
      */
     public function validateProperty(object $entity, ReflectionProperty $property): void
     {
-        $attributes = $property->getAttributes();
+        $attributes = $property->getAttributes(ValidateAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
         $key = $property->getName();
         foreach ($attributes as $attribute) {
             /**  @var ValidateAttribute $instance */
             $instance = $attribute->newInstance();
-            if (!$instance instanceof ValidateAttribute) {
-                continue;
-            }
             $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
             if (!$instance->validate($value)) {
                 if ($this->batch) {
