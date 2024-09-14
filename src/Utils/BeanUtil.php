@@ -25,26 +25,27 @@ use yuandian\Validation\Rules\Trim;
  */
 class BeanUtil
 {
-    /***
+    /**
      * 数组转对象
      *
-     * @param array $array
+     * @param array $from
      * @param string|object $object
+     * @param bool $isCollection
      * @return object|array
-     * @throws ParameterException|ReflectionException
+     * @throws ReflectionException
      * @date 2024/8/22 15:14
      * @author 原点 467490186@qq.com
      */
     public static function arrayToObject(array $from, string|object $object, bool $isCollection = false): object|array
     {
+        // 集合类型处理
         if ($isCollection) {
             return array_map(
                 fn(mixed $item) => self::arrayToObject($item, $object),
                 $from
             );
         }
-
-
+        
         $reflectionClass = new ReflectionClass($object);
         // 如果$object是字符串，则创建一个新的实例
         if (is_string($object)) {
