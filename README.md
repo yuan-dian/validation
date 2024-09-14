@@ -4,7 +4,7 @@
 
 # 安装
 
-``` composer require yuandian/validator ```
+``` composer require yuandian/validation ```
 
 # 使用示例
 
