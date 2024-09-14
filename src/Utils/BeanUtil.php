@@ -15,6 +15,7 @@ namespace yuandian\Validation\Utils;
 
 use ReflectionClass;
 use ReflectionException;
+use ReflectionProperty;
 use ReflectionUnionType;
 use yuandian\Validation\Exception\ParameterException;
 use yuandian\Validation\Rules\Trim;
@@ -57,7 +58,7 @@ class BeanUtil
 
             // 处理无类型或空值的情况
             if ($propertyType === null || (is_null($value) && $propertyType->allowsNull())) {
-                $object->$key = $value;
+                $property->setValue($object, $value);
                 continue;
             }
 
@@ -66,11 +67,11 @@ class BeanUtil
 
             // 优先匹配值的实际类型
             if (in_array(self::getPhpTypeName($value), array_map(fn($type) => $type->getName(), $types))) {
-                $object->$key = $value;
+                $property->setValue($object, $value);
                 continue;
             }
             // 类型转换处理
-            self::assignConvertedValue($object, $key, $value, $types);
+            self::assignConvertedValue($property, $object, $value, $types);
         }
 
         return $object;
@@ -99,31 +100,34 @@ class BeanUtil
     /**
      * 根据类型转换值并赋值给对象
      *
+     * @param ReflectionProperty $property
      * @param object $object
-     * @param string $key
      * @param mixed $value
      * @param array $types
-     * @throws ParameterException|ReflectionException
      * @date 2024/8/28 11:23
      * @author 原点 467490186@qq.com
      */
-    private static function assignConvertedValue(object $object, string $key, mixed $value, array $types): void
-    {
+    private static function assignConvertedValue(
+        ReflectionProperty $property,
+        object $object,
+        mixed $value,
+        array $types
+    ): void {
         foreach ($types as $type) {
             $typeName = $type->getName();
             try {
                 if (self::isConvertible(self::getPhpTypeName($value), $typeName) && settype($value, $typeName)) {
-                    $object->$key = $value;
+                    $property->setValue($object, $value);
                     return;
                 } elseif (class_exists($typeName) && is_array($value)) {
-                    $object->$key = self::arrayToObject($value, $typeName);
+                    $property->setValue($object, self::arrayToObject($value, $typeName));
                     return;
                 }
             } catch (\Throwable $e) {
                 // 类型转失败，尝试下一个类型
             }
         }
-        throw new ParameterException("$key Type mismatch");
+        throw new ParameterException("$property->name Type mismatch");
     }
 
     /**
