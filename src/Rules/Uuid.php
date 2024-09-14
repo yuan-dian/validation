@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/8/19
+// | Date: 2024/9/14
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
@@ -16,30 +16,15 @@ namespace yuandian\Validation\Rules;
 use Attribute;
 use yuandian\Validation\Rule;
 
-/**
- * 验证长度
- * 数字：验证大小
- * 字符串：字符串长度
- * 数组：数组项个数
- */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Length implements Rule
+class Uuid implements Rule
 {
-    public function __construct(public int $min, public int $max, public string $message = '')
+    public function __construct(public string $message = "The value should contain a valid UUID")
     {
-        if (empty($message)) {
-            $this->message = "must be Length to {$this->min} ~ {$this->max}";
-        }
     }
 
     public function validate(mixed $value): bool
     {
-        if (is_array($value)) {
-            $length = count($value);
-        } else {
-            $length = mb_strlen((string)$value);
-        }
-
-        return $length >= $this->min && $length <= $this->max;
+        return boolval(preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $value));
     }
 }
