@@ -11,14 +11,13 @@
 
 declare (strict_types=1);
 
-namespace yuandian;
+namespace yuandian\Validation;
 
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
-use yuandian\attributes\Scene;
-use yuandian\attributes\ValidateAttribute;
-use yuandian\exception\ValidateException;
+use yuandian\Validation\Exception\ValidateException;
+use yuandian\Validation\Rules\Scene;
 
 class Validator
 {
@@ -140,10 +139,10 @@ class Validator
      */
     public function validateProperty(object $entity, ReflectionProperty $property): void
     {
-        $attributes = $property->getAttributes(ValidateAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
+        $attributes = $property->getAttributes(Rule::class, ReflectionAttribute::IS_INSTANCEOF);
         $key = $property->getName();
         foreach ($attributes as $attribute) {
-            /**  @var ValidateAttribute $instance */
+            /**  @var Rule $instance */
             $instance = $attribute->newInstance();
             $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
             if (!$instance->validate($value)) {

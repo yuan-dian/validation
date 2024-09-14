@@ -6,27 +6,31 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/6/5
+// | Date: 2024/8/22
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
 /**
- * 验证是否是邮箱
+ * 验证是否是纯字母
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Email implements ValidateAttribute
+class Alpha implements Rule
 {
-    public function __construct(public string $message = "The mailbox is incorrectly formatted")
+    private const rule = '/^[A-Za-z]+$/';
+
+
+    public function __construct(public string $message = "The value should be alpha")
     {
     }
 
     public function validate(mixed $value): bool
     {
-        return false !== filter_var($value, FILTER_VALIDATE_EMAIL);
+        return is_scalar($value) && 1 === preg_match(self::rule, (string)$value);
     }
 }

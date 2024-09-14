@@ -1,10 +1,10 @@
 {
-  "name": "yuandian/validator",
-  "description": "Helpers for making PHP Attribute validator more lovable.",
+  "name": "yuandian/validation",
+  "description": "Helpers for making PHP Attribute validation.",
   "type": "library",
   "keywords": [
     "php",
-    "validator",
+    "validation",
     "attribute"
   ],
   "license": "MIT",
@@ -21,7 +21,7 @@
   },
   "autoload": {
     "psr-4": {
-      "yuandian\\": "src"
+      "yuandian\\Validation\\": "src"
     }
   }
 }

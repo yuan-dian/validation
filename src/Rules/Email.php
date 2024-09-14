@@ -11,22 +11,23 @@
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
 /**
- * 验证是否是IP地址
+ * 验证是否是邮箱
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Ip implements ValidateAttribute
+class Email implements Rule
 {
-    public function __construct(public string $message = "The value should be an IP address")
+    public function __construct(public string $message = "The mailbox is incorrectly formatted")
     {
     }
 
     public function validate(mixed $value): bool
     {
-        return false !== filter_var($value, FILTER_VALIDATE_IP);
+        return false !== filter_var($value, FILTER_VALIDATE_EMAIL);
     }
 }

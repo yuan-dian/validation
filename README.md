@@ -11,9 +11,9 @@
 - 定义实体文件 ```UserRequest.php```
 
 ```php
-use yuandian\attributes\NotEmpty;
-use yuandian\attributes\Email;
-use yuandian\attributes\Scene;
+use yuandian\rules\NotEmpty;
+use yuandian\rules\Email;
+use yuandian\rules\Scene;
 
 // 用于配置场景验证
 #[Scene("add",  ['name'])]
@@ -32,8 +32,8 @@ class UserRequest {
 ```php
 require_once 'vendor/autoload.php';
 
-use yuandian\Validator
-use yuandian\exception\ValidateException;
+use yuandian\Validation\Validator
+use yuandian\Validation\Exception\ValidateException;
 
 $request = new UserRequest();
 $request->name = '张三';
@@ -57,8 +57,8 @@ try {
 - 定义实体文件 ```UserRequest.php```
 
 ```php
-use yuandian\attributes\NotEmpty;
-use yuandian\attributes\Email;
+use yuandian\rules\NotEmpty;
+use yuandian\rules\Email;
 use yuandian\BaseValidatorEntity;
 
 class UserRequest extends BaseValidatorEntity {
@@ -76,7 +76,7 @@ class UserRequest extends BaseValidatorEntity {
 ```php
 require_once 'vendor/autoload.php';
 
-use yuandian\exception\ValidateException;
+use yuandian\Validation\Exception\ValidateException;
 
 // 模拟请求数据
 $requestData = [
@@ -94,7 +94,7 @@ try {
 
 # 自定义验证规则
 
-- 实现 `yuandian\attributes\ValidateAttribute`接口
+- 实现 `yuandian\Validation\Rule`接口
 - 在自定义的类上增加`#[Attribute(Attribute::TARGET_PROPERTY)]`注解
 
 ## 捐献

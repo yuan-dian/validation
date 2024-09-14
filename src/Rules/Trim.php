@@ -6,31 +6,20 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/6/5
+// | Date: 2024/8/28
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
 
 /**
- * 验证手机号码
+ * 去除首尾空格
+ * 只支持输入参数为字符串时生效
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Mobile implements ValidateAttribute
+class Trim
 {
-     private const rule = '/^1[3-9]\d{9}$/';
-
-
-    public function __construct(public string $message = "The value should be mobile phone number")
-    {
-    }
-
-    public function validate(mixed $value): bool
-    {
-
-        return is_scalar($value) && 1 === preg_match(self::rule, (string) $value);
-    }
 }

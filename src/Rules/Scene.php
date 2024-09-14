@@ -6,27 +6,26 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/6/5
+// | Date: 2024/9/6
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
 
 /**
- * 验证正则
+ * Scene validate
  */
-#[Attribute(Attribute::TARGET_PROPERTY)]
-class Pattern implements ValidateAttribute
+#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
+class Scene
 {
-    public function __construct(public string $regexp = '', public string $message = "不符合正则表达式",)
+    /**
+     * @param string $name The name of the scene
+     * @param array $properties Verify the list of attributes
+     */
+    public function __construct(public string $name, public array $properties = [])
     {
-    }
-
-    public function validate(mixed $value): bool
-    {
-        return is_scalar($value) && 1 === preg_match($this->regexp, (string)$value);
     }
 }

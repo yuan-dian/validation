@@ -9,9 +9,9 @@
 // | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
-declare (strict_types = 1);
+declare (strict_types=1);
 
-namespace yuandian\exception;
+namespace yuandian\Validation\Exception;
 
 /**
  * 数据验证异常
@@ -22,7 +22,7 @@ class ValidateException extends \RuntimeException
 
     public function __construct($error)
     {
-        $this->error   = $error;
+        $this->error = $error;
         $this->message = is_array($error) ? implode(PHP_EOL, $error) : $error;
     }
 

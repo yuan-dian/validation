@@ -11,20 +11,23 @@
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
+/**
+ * 验证是否是url
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class NotEmpty implements ValidateAttribute
+class Url implements Rule
 {
-    public function __construct(public string $message = "This value should not be blank.")
+    public function __construct(public string $message = "The value should be in a URL format")
     {
     }
 
     public function validate(mixed $value): bool
     {
-        return !empty($value) || '0' == $value;
+        return false !== filter_var($value, FILTER_VALIDATE_URL);
     }
-
 }

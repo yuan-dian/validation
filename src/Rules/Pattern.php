@@ -6,27 +6,28 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/8/22
+// | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
 /**
- * 验证是否是数组
+ * 验证正则
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class IsArray
+class Pattern implements Rule
 {
-    public function __construct(public string $message = "The value should be a array")
+    public function __construct(public string $regexp = '', public string $message = "不符合正则表达式")
     {
     }
 
     public function validate(mixed $value): bool
     {
-        return is_array($value);
+        return is_scalar($value) && 1 === preg_match($this->regexp, (string)$value);
     }
 }

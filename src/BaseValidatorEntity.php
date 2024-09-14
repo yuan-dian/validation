@@ -11,7 +11,7 @@
 
 declare (strict_types=1);
 
-namespace yuandian;
+namespace yuandian\Validation;
 
 abstract class BaseValidatorEntity extends BaseEntity
 {

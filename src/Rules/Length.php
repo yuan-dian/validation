@@ -11,9 +11,10 @@
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
 /**
  * 验证长度
@@ -22,7 +23,7 @@ use Attribute;
  * 数组：数组项个数
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Length implements ValidateAttribute
+class Length implements Rule
 {
     public function __construct(public int $min, public int $max, public string $message = '')
     {

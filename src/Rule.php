@@ -9,9 +9,9 @@
 // | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
-namespace yuandian\attributes;
+namespace yuandian\Validation;
 
-interface ValidateAttribute
+interface Rule
 {
     public function validate(mixed $value): bool;
 

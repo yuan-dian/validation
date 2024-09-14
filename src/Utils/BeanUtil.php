@@ -11,13 +11,13 @@
 
 declare (strict_types=1);
 
-namespace yuandian\utils;
+namespace yuandian\Validation\Utils;
 
 use ReflectionClass;
 use ReflectionException;
 use ReflectionUnionType;
-use yuandian\attributes\Trim;
-use yuandian\exception\ParameterException;
+use yuandian\Validation\Exception\ParameterException;
+use yuandian\Validation\Rules\Trim;
 
 /**
  * Bean 工具类

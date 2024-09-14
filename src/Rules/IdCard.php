@@ -11,31 +11,26 @@
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
+/**
+ * 验证是否是身份证
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Min implements ValidateAttribute
+class IdCard implements Rule
 {
-    public function __construct(public int $rule, public string $message = '')
+    private const rule = '/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/';
+
+
+    public function __construct(public string $message = "The ID card rules are incorrect")
     {
-        if (empty($message)) {
-            $this->message = "must be greater than or equal to {$this->rule}";
-        }
     }
 
     public function validate(mixed $value): bool
     {
-        if (is_int($value) || is_float($value)) {
-            $length = $value;
-        } elseif (is_array($value)) {
-            $length = count($value);
-        } else {
-            $length = mb_strlen((string)$value);
-        }
-
-        return $length >= $this->rule;
+        return is_scalar($value) && 1 === preg_match(self::rule, (string)$value);
     }
-
 }

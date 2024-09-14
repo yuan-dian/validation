@@ -6,31 +6,37 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/8/22
+// | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
 
-namespace yuandian\attributes;
+namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
-/**
- * 验证是否是纯字母
- */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Alpha  implements ValidateAttribute
+class Max implements Rule
 {
-    private const rule = '/^[A-Za-z]+$/';
-
-
-    public function __construct(public string $message = "The value should be alpha")
+    public function __construct(public int $rule, public string $message = '')
     {
+        if (empty($message)) {
+            $this->message = "must be less than or equal to {$this->rule}";
+        }
     }
 
     public function validate(mixed $value): bool
     {
+        if (is_int($value) || is_float($value)) {
+            $length = $value;
+        } elseif (is_array($value)) {
+            $length = count($value);
+        } else {
+            $length = mb_strlen((string)$value);
+        }
 
-        return is_scalar($value) && 1 === preg_match(self::rule, (string) $value);
+        return $length <= $this->rule;
     }
+
 }
