@@ -30,20 +30,28 @@ class BeanUtil
      *
      * @param array $array
      * @param string|object $object
-     * @return object
+     * @return object|array
      * @throws ParameterException|ReflectionException
      * @date 2024/8/22 15:14
      * @author 原点 467490186@qq.com
      */
-    public static function arrayToObject(array $array, string|object $object): object
+    public static function arrayToObject(array $from, string|object $object, bool $isCollection = false): object|array
     {
+        if ($isCollection) {
+            return array_map(
+                fn(mixed $item) => self::arrayToObject($item, $object),
+                $from
+            );
+        }
+
+
         $reflectionClass = new ReflectionClass($object);
         // 如果$object是字符串，则创建一个新的实例
         if (is_string($object)) {
             $object = $reflectionClass->newInstanceWithoutConstructor();
         }
 
-        foreach ($array as $key => $value) {
+        foreach ($from as $key => $value) {
             // 检查属性是否定义
             if (!$reflectionClass->hasProperty($key)) {
                 continue;
