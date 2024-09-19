@@ -26,6 +26,21 @@ use yuandian\Validation\Rules\Trim;
 class BeanUtil
 {
     /**
+     * 对象转对象
+     * 【只处理公共属性】
+     * @param object $from
+     * @param string|object $object
+     * @return object
+     * @throws ReflectionException
+     * @date 2024/8/22 15:14
+     * @author 原点 467490186@qq.com
+     */
+    public static function objectToObject(object $from, string|object $object): object
+    {
+        return self::arrayToObject(get_object_vars($from), $object);
+    }
+
+    /**
      * 数组转对象
      *
      * @param array $from
@@ -45,7 +60,7 @@ class BeanUtil
                 $from
             );
         }
-        
+
         $reflectionClass = new ReflectionClass($object);
         // 如果$object是字符串，则创建一个新的实例
         if (is_string($object)) {
