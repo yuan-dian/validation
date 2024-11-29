@@ -146,6 +146,33 @@ class BeanUtil
                 } elseif (class_exists($typeName) && is_array($value)) {
                     $property->setValue($object, self::arrayToObject($value, $typeName));
                     return;
+                } elseif (enum_exists($typeName)) {
+                    if ($value instanceof $typeName) {
+                        $property->setValue($object, $value);
+                        return;
+                    }
+                    // 检查是否为没有值的枚举（没有值的枚举不会实现 BackedEnum 接口）
+                    if (is_subclass_of($typeName, \BackedEnum::class)) {
+                        // 基础枚举：处理带值的枚举（例如 string 或 int）
+                        if (is_string($value) || is_int($value)) {
+                            foreach ($typeName::cases() as $case) {
+                                if ($case->value === $value) {
+                                    $property->setValue($object, $case);
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        if (is_string($value)) {
+                            foreach ($typeName::cases() as $case) {
+                                if ($case->name === $value) {
+                                    $property->setValue($object, $case);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    return;
                 }
             } catch (\Throwable $e) {
                 // 类型转失败，尝试下一个类型
