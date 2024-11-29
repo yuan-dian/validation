@@ -33,6 +33,12 @@ class Validator
     protected array $error = [];
 
     /**
+     * 缓存的反射类列表
+     * @var array
+     */
+    private static array $reflectionCache = [];
+
+    /**
      * 设置批量验证
      * @param bool $batch
      * @return $this
@@ -55,7 +61,7 @@ class Validator
      */
     public function validate(object $entity, string $scene = ''): void
     {
-        $reflectionClass = new ReflectionClass($entity);
+        $reflectionClass = $this->getReflectionClass($entity);
 
         // 获取属性
         $properties = $this->getProperties($reflectionClass, $scene);
@@ -68,6 +74,20 @@ class Validator
         if (!empty($this->error)) {
             throw new ValidateException($this->error);
         }
+    }
+
+    /**
+     * 获取反射类实例，缓存反射信息，避免重复实例化
+     * @param object $entity
+     * @return ReflectionClass
+     */
+    private function getReflectionClass(object $entity): ReflectionClass
+    {
+        $className = get_class($entity);
+        if (!isset($this->reflectionCache[$className])) {
+            self::$reflectionCache[$className] = new ReflectionClass($entity);
+        }
+        return self::$reflectionCache[$className];
     }
 
     /**
@@ -86,16 +106,16 @@ class Validator
         }
 
         // 获取场景注解
-        $scene_list = $this->getSceneList($reflectionClass);
+        $sceneList = $this->getSceneList($reflectionClass);
 
         // 检查场景是否存在
-        if (!isset($scene_list[$scene])) {
+        if (!isset($sceneList[$scene])) {
             throw new ValidateException("Invalid scene");
         }
 
         // 根据场景返回属性
         $properties = [];
-        foreach ($scene_list[$scene] as $key) {
+        foreach ($sceneList[$scene] as $key) {
             if ($reflectionClass->hasProperty($key)) {
                 $reflectionProperty = $reflectionClass->getProperty($key);
                 if ($reflectionProperty->isPublic()) {
@@ -116,18 +136,16 @@ class Validator
      */
     private function getSceneList(ReflectionClass $reflectionClass): array
     {
-        $scene_list = [];
+        $sceneList = [];
         $attributes = $reflectionClass->getAttributes(Scene::class);
 
         foreach ($attributes as $attribute) {
-            /**
-             * @var Scene $newInstance
-             */
+            /** @var Scene $sceneInstance */
             $newInstance = $attribute->newInstance();
-            $scene_list[$newInstance->name] = $newInstance->properties;
+            $sceneList[$newInstance->name] = $newInstance->properties;
         }
 
-        return $scene_list;
+        return $sceneList;
     }
 
     /**
