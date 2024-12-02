@@ -49,16 +49,15 @@ class BeanUtil
      *
      * @param array $from
      * @param string|object $object
-     * @param bool $isCollection
      * @return object|array
      * @throws ReflectionException
      * @date 2024/8/22 15:14
      * @author 原点 467490186@qq.com
      */
-    public static function arrayToObject(array $from, string|object $object, bool $isCollection = false): object|array
+    public static function arrayToObject(array $from, string|object $object): object|array
     {
         // 集合类型处理
-        if ($isCollection) {
+        if (array_is_list($from)) {
             return array_map(
                 fn(mixed $item) => self::arrayToObject($item, $object),
                 $from
