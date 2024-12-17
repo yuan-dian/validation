@@ -28,10 +28,7 @@ class NotNull implements Rule
 
     public function validate(mixed $value): bool
     {
-        if ($value === null) {
-            return false;
-        }
-        return true;
+        return $value !== null;
     }
 
 }

@@ -214,25 +214,24 @@ class BeanUtil
             $property->setValue($object, $value);
             return;
         }
-
+        if (!is_string($value) && !is_int($value)) {
+            throw new ParameterException("$typeName 枚举值不合法");
+        }
         // 处理基础枚举类型（BackedEnum）
         if (is_subclass_of($typeName, \BackedEnum::class)) {
-            if (is_string($value) || is_int($value)) {
-                foreach ($typeName::cases() as $case) {
-                    if ($case->value === $value) {
-                        $property->setValue($object, $case);
-                        return;
-                    }
+            foreach ($typeName::cases() as $case) {
+                if ($case->value === $value) {
+                    $property->setValue($object, $case);
+                    return;
                 }
             }
-        } else {
-            // 处理无值枚举（Pure Enum）
-            if (is_string($value)) {
-                foreach ($typeName::cases() as $case) {
-                    if ($case->name === $value) {
-                        $property->setValue($object, $case);
-                        return;
-                    }
+        }
+        // 处理无值枚举（UnitEnum）
+        if (is_subclass_of($typeName, \UnitEnum::class) && is_string($value)) {
+            foreach ($typeName::cases() as $case) {
+                if ($case->name === $value) {
+                    $property->setValue($object, $case);
+                    return;
                 }
             }
         }
