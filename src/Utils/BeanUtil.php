@@ -15,6 +15,7 @@ namespace yuandian\Validation\Utils;
 
 use ReflectionClass;
 use ReflectionException;
+use ReflectionObject;
 use ReflectionProperty;
 use ReflectionUnionType;
 use yuandian\Validation\Exception\ParameterException;
@@ -26,22 +27,112 @@ use yuandian\Validation\Rules\Trim;
 class BeanUtil
 {
 
-    // 缓存已反射的类，以避免重复创建
-    private static array $reflectionCache = [];
+    /**
+     * 缓存已反射的类，以避免重复创建
+     * @var array
+     */
+    private static array $reflectionClassCache = [];
 
     /**
-     * 对象转对象
-     * 【只处理公共属性】
-     * @param object $from
-     * @param string|object $object
-     * @return object
+     * 缓存已反射的对象，以避免重复创建
+     * @var array
+     */
+    private static array $reflectionObjectCache = [];
+
+    /**
+     * 复制源对象的属性到目标对象。
+     * @param object $source
+     * @param object $target
      * @throws ReflectionException
-     * @date 2024/8/22 15:14
+     * @date 2025/2/21 14:06
      * @author 原点 467490186@qq.com
      */
-    public static function objectToObject(object $from, string|object $object): object
+    public static function copyProperties(object $source, object|string $target): void
     {
-        return self::arrayToObject(get_object_vars($from), $object);
+        $sourceReflection = static::getReflectionObject($source);
+        if (!is_object($target)) {
+            $reflectionClass = static::getReflectionClass($target);
+            $target = $reflectionClass->newInstanceWithoutConstructor();
+        }
+        $targetReflection = static::getReflectionObject($target);
+
+        foreach ($sourceReflection->getProperties() as $sourceProperty) {
+            $propertyName = $sourceProperty->getName();
+            $value = self::getPropertyValue($source, $sourceReflection, $sourceProperty);
+
+            // 尝试通过 setter 方法或直接属性赋值到目标对象
+            self::setPropertyValue($target, $targetReflection, $propertyName, $value);
+        }
+    }
+
+    /**
+     * 获取对象的属性值，优先使用 getter 方法。
+     * @param object $source
+     * @param ReflectionObject $reflection
+     * @param ReflectionProperty $property
+     * @return mixed
+     * @throws ReflectionException
+     * @date 2025/2/21 14:06
+     * @author 原点 467490186@qq.com
+     */
+    private static function getPropertyValue(
+        object $source,
+        ReflectionObject $reflection,
+        ReflectionProperty $property
+    ): mixed {
+        $propertyName = $property->getName();
+        $getterMethods = ['get' . ucfirst($propertyName), 'is' . ucfirst($propertyName)];
+
+        foreach ($getterMethods as $methodName) {
+            if ($reflection->hasMethod($methodName)) {
+                $method = $reflection->getMethod($methodName);
+                if ($method->getNumberOfRequiredParameters() === 0) {
+                    return $method->invoke($source);
+                }
+            }
+        }
+
+        // 没有 getter，直接读取属性
+        return $property->getValue($source);
+    }
+
+    /**
+     * 设置目标对象的属性值，优先使用 setter 方法。
+     * @param object $target
+     * @param ReflectionObject $reflection
+     * @param string $propertyName
+     * @param mixed $value
+     * @throws ReflectionException
+     * @date 2025/2/21 14:06
+     * @author 原点 467490186@qq.com
+     */
+    private static function setPropertyValue(
+        object $target,
+        ReflectionObject $reflection,
+        string $propertyName,
+        mixed $value
+    ): void {
+        $setterMethod = 'set' . ucfirst($propertyName);
+
+        // 尝试调用 setter 方法
+        if ($reflection->hasMethod($setterMethod)) {
+            $method = $reflection->getMethod($setterMethod);
+            $parameters = $method->getParameters();
+            if (count($parameters) === 1) {
+                $method->invoke($target, $value);
+                return;
+            }
+        }
+
+        // 没有 setter，直接设置属性
+        if ($reflection->hasProperty($propertyName)) {
+            $property = $reflection->getProperty($propertyName);
+            // 检查只读属性
+            if ($property->isReadOnly() && $property->isInitialized($target)) {
+                return;
+            }
+            $property->setValue($target, $value);
+        }
     }
 
     /**
@@ -125,11 +216,29 @@ class BeanUtil
     {
         $className = is_object($object) ? get_class($object) : $object;
 
-        if (!isset(self::$reflectionCache[$className])) {
-            self::$reflectionCache[$className] = new ReflectionClass($className);
+        if (!isset(self::$reflectionClassCache[$className])) {
+            self::$reflectionClassCache[$className] = new ReflectionClass($className);
         }
 
-        return self::$reflectionCache[$className];
+        return self::$reflectionClassCache[$className];
+    }
+
+    /**
+     * 从缓存获取反射对象，如果缓存中不存在则创建
+     * @param object $object
+     * @return ReflectionObject
+     * @date 2025/2/21 14:10
+     * @author 原点 467490186@qq.com
+     */
+    private static function getReflectionObject(object $object): ReflectionObject
+    {
+        $className = get_class($object);
+
+        if (!isset(self::$reflectionObjectCache[$className])) {
+            self::$reflectionObjectCache[$className] = new ReflectionObject($object);
+        }
+
+        return self::$reflectionObjectCache[$className];
     }
 
     /**
