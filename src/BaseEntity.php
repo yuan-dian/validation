@@ -14,8 +14,8 @@ declare (strict_types=1);
 namespace yuandian\Validation;
 
 use ReflectionException;
+use yuandian\Tools\bean\BeanUtil;
 use yuandian\Validation\Exception\ParameterException;
-use yuandian\Validation\Utils\BeanUtil;
 
 abstract class BaseEntity
 {

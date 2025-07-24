@@ -17,11 +17,18 @@
   "require": {
     "php": ">=8.1",
     "ext-mbstring": "*",
-    "ext-ctype": "*"
+    "ext-ctype": "*",
+    "yuandian/tools": "*"
   },
   "autoload": {
     "psr-4": {
       "yuandian\\Validation\\": "src"
     }
-  }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "yuandian\\Validation\\Tests\\": "tests"
+    }
+  },
+  "minimum-stability": "dev"
 }

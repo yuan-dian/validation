@@ -13,9 +13,8 @@ declare (strict_types=1);
 
 namespace yuandian\Validation;
 
-use ReflectionAttribute;
-use ReflectionClass;
-use ReflectionProperty;
+use yuandian\Tools\reflection\ClassReflector;
+use yuandian\Tools\reflection\PHPReflectionProperty;
 use yuandian\Validation\Exception\ValidateException;
 use yuandian\Validation\Rules\Scene;
 
@@ -31,12 +30,6 @@ class Validator
      * @var array
      */
     protected array $error = [];
-
-    /**
-     * 缓存的反射类列表
-     * @var array
-     */
-    private static array $reflectionCache = [];
 
     /**
      * 设置批量验证
@@ -57,11 +50,12 @@ class Validator
      * @param object $entity
      * @param string $scene 场景
      * @date 2024/6/6 上午10:28
+     * @throws \ReflectionException
      * @author 原点 467490186@qq.com
      */
     public function validate(object $entity, string $scene = ''): void
     {
-        $reflectionClass = $this->getReflectionClass($entity);
+        $reflectionClass = new ClassReflector($entity);
 
         // 获取属性
         $properties = $this->getProperties($reflectionClass, $scene);
@@ -77,32 +71,19 @@ class Validator
     }
 
     /**
-     * 获取反射类实例，缓存反射信息，避免重复实例化
-     * @param object $entity
-     * @return ReflectionClass
-     */
-    private function getReflectionClass(object $entity): ReflectionClass
-    {
-        $className = get_class($entity);
-        if (!isset($this->reflectionCache[$className])) {
-            self::$reflectionCache[$className] = new ReflectionClass($entity);
-        }
-        return self::$reflectionCache[$className];
-    }
-
-    /**
      * 获取对象属性
-     * @param ReflectionClass $reflectionClass
+     * @param ClassReflector $reflectionClass
      * @param string $scene
      * @return array
      * @date 2024/9/6 14:14
+     * @throws \ReflectionException
      * @author 原点 467490186@qq.com
      */
-    private function getProperties(ReflectionClass $reflectionClass, string $scene): array
+    private function getProperties(ClassReflector $reflectionClass, string $scene): array
     {
         // 如果没有场景，直接返回所有属性
         if (empty($scene)) {
-            return $reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+            return $reflectionClass->getPublicProperties();
         }
 
         // 获取场景注解
@@ -129,20 +110,18 @@ class Validator
 
     /**
      * 获取对象场景列表
-     * @param ReflectionClass $reflectionClass
+     * @param ClassReflector $reflectionClass
      * @return array
      * @date 2024/9/6 14:15
      * @author 原点 467490186@qq.com
      */
-    private function getSceneList(ReflectionClass $reflectionClass): array
+    private function getSceneList(ClassReflector $reflectionClass): array
     {
         $sceneList = [];
-        $attributes = $reflectionClass->getAttributes(Scene::class);
+        $scenes = $reflectionClass->getAttributes(Scene::class);
 
-        foreach ($attributes as $attribute) {
-            /** @var Scene $sceneInstance */
-            $newInstance = $attribute->newInstance();
-            $sceneList[$newInstance->name] = $newInstance->properties;
+        foreach ($scenes as $scene) {
+            $sceneList[$scene->name] = $scene->properties;
         }
 
         return $sceneList;
@@ -151,24 +130,30 @@ class Validator
     /**
      * 验证属性
      * @param object $entity
-     * @param ReflectionProperty $property
+     * @param PHPReflectionProperty $property
      * @date 2024/9/6 14:15
+     * @throws \ReflectionException
      * @author 原点 467490186@qq.com
      */
-    public function validateProperty(object $entity, ReflectionProperty $property): void
+    public function validateProperty(object $entity, PHPReflectionProperty $property): void
     {
-        $attributes = $property->getAttributes(Rule::class, ReflectionAttribute::IS_INSTANCEOF);
+        $rules = $property->getAttributes(Rule::class);
+        if (empty($rules)) {
+            return;
+        }
         $key = $property->getName();
-        foreach ($attributes as $attribute) {
-            /**  @var Rule $instance */
-            $instance = $attribute->newInstance();
+        foreach ($rules as $rule) {
             $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
-            if (!$instance->validate($value)) {
+            if (!$rule->validate($value)) {
                 if ($this->batch) {
-                    $this->error[$key][] = $instance->message;
+                    $this->error[$key][] = $rule->message;
                 } else {
-                    throw new ValidateException($instance->message);
+                    throw new ValidateException($rule->message);
                 }
+            }
+            // 验证对象
+            if (is_object($value)) {
+                $this->validate($value);
             }
         }
         if (isset($this->error[$key])) {
