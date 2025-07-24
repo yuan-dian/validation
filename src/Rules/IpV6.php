@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/9/14
+// | Date: 2024/6/5
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
@@ -16,25 +16,18 @@ namespace yuandian\Validation\Rules;
 use Attribute;
 use yuandian\Validation\Rule;
 
+/**
+ * 验证是否是IPV6地址
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Between implements Rule
+class IpV6 implements Rule
 {
-    public function __construct(
-        private readonly int $min,
-        private readonly int $max,
-        public string $message = ""
-    ) {
-        if (empty($message)) {
-            $this->message = "The value should be be between {$this->min} and {$this->max}";
-        }
+    public function __construct(public string $message = "The value should be an IPV6 address")
+    {
     }
 
     public function validate(mixed $value): bool
     {
-        if ($value >= $this->min && $value <= $this->max) {
-            return true;
-        }
-
-        return false;
+        return false !== filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
     }
 }

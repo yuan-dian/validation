@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/8/28
+// | Date: 2024/8/22
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
@@ -14,12 +14,20 @@ declare (strict_types=1);
 namespace yuandian\Validation\Rules;
 
 use Attribute;
+use yuandian\Validation\Rule;
 
 /**
- * 去除首尾空格
- * 只支持输入参数为字符串时生效
+ * 验证是否是数组列表
  */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Trim
+class ArrayList implements Rule
 {
+    public function __construct(public string $message = "The value should be a array list")
+    {
+    }
+
+    public function validate(mixed $value): bool
+    {
+        return is_array($value) && array_is_list($value);
+    }
 }

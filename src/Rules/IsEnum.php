@@ -18,7 +18,7 @@ use yuandian\Validation\Exception\ParameterException;
 use yuandian\Validation\Rule;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Enum implements Rule
+class IsEnum implements Rule
 {
     /**
      * @param string $enum enum class

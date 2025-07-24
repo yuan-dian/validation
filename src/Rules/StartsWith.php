@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/9/14
+// | Date: 2025/7/24
 // +----------------------------------------------------------------------
 
 declare (strict_types=1);
@@ -16,25 +16,21 @@ namespace yuandian\Validation\Rules;
 use Attribute;
 use yuandian\Validation\Rule;
 
+/**
+ * 验证是否已指定字符串开始
+ */
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Between implements Rule
+class StartsWith implements Rule
 {
-    public function __construct(
-        private readonly int $min,
-        private readonly int $max,
-        public string $message = ""
-    ) {
+    public function __construct(public string $needle, public string $message = '')
+    {
         if (empty($message)) {
-            $this->message = "The value should be be between {$this->min} and {$this->max}";
+            $this->message = "Value should start with {$this->needle}";
         }
     }
 
     public function validate(mixed $value): bool
     {
-        if ($value >= $this->min && $value <= $this->max) {
-            return true;
-        }
-
-        return false;
+        return str_starts_with($value, $this->needle);
     }
 }
