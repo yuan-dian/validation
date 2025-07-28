@@ -18,7 +18,7 @@
     "php": ">=8.1",
     "ext-mbstring": "*",
     "ext-ctype": "*",
-    "yuandian/tools": "^1.0"
+    "yuandian/tools": "^1.1"
   },
   "autoload": {
     "psr-4": {

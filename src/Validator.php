@@ -14,7 +14,7 @@ declare (strict_types=1);
 namespace yuandian\Validation;
 
 use yuandian\Tools\reflection\ClassReflector;
-use yuandian\Tools\reflection\PHPReflectionProperty;
+use yuandian\Tools\reflection\PropertyReflection;
 use yuandian\Validation\Exception\ValidateException;
 use yuandian\Validation\Rules\Scene;
 
@@ -130,12 +130,12 @@ class Validator
     /**
      * 验证属性
      * @param object $entity
-     * @param PHPReflectionProperty $property
+     * @param PropertyReflection $property
      * @date 2024/9/6 14:15
      * @throws \ReflectionException
      * @author 原点 467490186@qq.com
      */
-    public function validateProperty(object $entity, PHPReflectionProperty $property): void
+    public function validateProperty(object $entity, PropertyReflection $property): void
     {
         $rules = $property->getAttributes(Rule::class);
         if (empty($rules)) {
