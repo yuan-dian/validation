@@ -16,7 +16,9 @@ namespace yuandian\Validation;
 use yuandian\Tools\reflection\ClassReflector;
 use yuandian\Tools\reflection\PropertyReflection;
 use yuandian\Validation\Exception\ValidateException;
+use yuandian\Validation\Rules\Each;
 use yuandian\Validation\Rules\Scene;
+use yuandian\Validation\Rules\When;
 
 class Validator
 {
@@ -30,6 +32,11 @@ class Validator
      * @var array
      */
     protected array $error = [];
+
+    /**
+     * 场景缓存
+     */
+    private static array $sceneCache = [];
 
     /**
      * 设置批量验证
@@ -76,14 +83,14 @@ class Validator
      * @param string $scene
      * @return array
      * @date 2024/9/6 14:14
-     * @throws \ReflectionException
      * @author 原点 467490186@qq.com
      */
-    private function getProperties(ClassReflector $reflectionClass, string $scene): array
+    private function getProperties(ClassReflector $reflectionClass, string $scene = ''): array
     {
+        $props = $reflectionClass->getPublicProperties();
         // 如果没有场景，直接返回所有属性
         if (empty($scene)) {
-            return $reflectionClass->getPublicProperties();
+            return $props;
         }
 
         // 获取场景注解
@@ -91,21 +98,14 @@ class Validator
 
         // 检查场景是否存在
         if (!isset($sceneList[$scene])) {
-            throw new ValidateException("Invalid scene");
+            throw new ValidateException("Invalid scene: {$scene}");
         }
+        $allow = array_flip($sceneList[$scene]);
 
-        // 根据场景返回属性
-        $properties = [];
-        foreach ($sceneList[$scene] as $key) {
-            if ($reflectionClass->hasProperty($key)) {
-                $reflectionProperty = $reflectionClass->getProperty($key);
-                if ($reflectionProperty->isPublic()) {
-                    $properties[] = $reflectionProperty;
-                }
-            }
-        }
-
-        return $properties;
+        return array_filter(
+            $props,
+            fn($prop) => isset($allow[$prop->getName()])
+        );
     }
 
     /**
@@ -117,14 +117,18 @@ class Validator
      */
     private function getSceneList(ClassReflector $reflectionClass): array
     {
-        $sceneList = [];
-        $scenes = $reflectionClass->getAttributes(Scene::class);
+        $class = $reflectionClass->getName();
 
-        foreach ($scenes as $scene) {
+        if (isset(self::$sceneCache[$class])) {
+            return self::$sceneCache[$class];
+        }
+
+        $sceneList = [];
+        foreach ($reflectionClass->getAttributes(Scene::class) as $scene) {
             $sceneList[$scene->name] = $scene->properties;
         }
 
-        return $sceneList;
+        return self::$sceneCache[$class] = $sceneList;
     }
 
     /**
@@ -142,22 +146,106 @@ class Validator
             return;
         }
         $key = $property->getName();
+        $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
+        $is_validate = true;
         foreach ($rules as $rule) {
-            $value = $property->isInitialized($entity) ? $property->getValue($entity) : null;
+            // 拦截 Each
+            if ($rule instanceof Each) {
+                $this->validateEach($key, $value, $rule);
+                continue;
+            }
+            // 拦截 Each
+            if ($rule instanceof When) {
+                $this->validateWhen($entity, $property, $value, $rule);
+                continue;
+            }
             if (!$rule->validate($value)) {
-                if ($this->batch) {
-                    $this->error[$key][] = $rule->message;
-                } else {
+                $is_validate = false;
+                if (!$this->batch) {
                     throw new ValidateException($rule->message);
                 }
-            }
-            // 验证对象
-            if (is_object($value)) {
-                $this->validate($value);
+                $this->error[$key][] = $rule->message;
             }
         }
-        if (isset($this->error[$key])) {
-            $this->error[$key] = implode(' & ', $this->error[$key]);
+        // 如果子项本身是对象，递归验证
+        if ($is_validate && is_object($value)) {
+            $this->validate($value);
+        }
+    }
+
+    /**
+     * @param string $field
+     * @param mixed $value
+     * @param Each $each
+     * @date 2025/12/5 下午3:18
+     * @author 原点 467490186@qq.com
+     */
+    private function validateEach(string $field, mixed $value, Each $each): void
+    {
+        if (!array_is_list($value)) {
+            $this->error[$field][] = "{$field} must be an list array";
+            return;
+        }
+
+        foreach ($value as $index => $item) {
+            // 支持 posts.*.title
+            if ($each->field !== null) {
+                $errorKey = "{$field}.{$index}.{$each->field}";
+                if (!is_array($item) || !array_key_exists($each->field, $item)) {
+                    if (!$this->batch) {
+                        throw new ValidateException($errorKey . ": field not exists");
+                    }
+                    $this->error[$errorKey][] = $errorKey . ": field not exists";
+                    continue;
+                }
+                $itemValue = $item[$each->field];
+            } else {
+                // 支持纯数组：tags.*
+                $itemValue = $item;
+                $errorKey = "{$field}.{$index}";
+            }
+            $rules = is_array($each->rules) ? $each->rules : [$each->rules];
+            foreach ($rules as $rule) {
+                if (!$rule->validate($itemValue)) {
+                    if (!$this->batch) {
+                        throw new ValidateException($errorKey . ": " . $rule->message);
+                    }
+                    $this->error[$errorKey][] = $errorKey . ": " . $rule->message;
+                }
+            }
+        }
+    }
+
+    /**
+     * 条件规则认证
+     * @param object $entity
+     * @param PropertyReflection $property
+     * @param mixed $value
+     * @param When $when
+     * @date 2025/12/5 下午3:49
+     * @author 原点 467490186@qq.com
+     */
+    private function validateWhen(object $entity, PropertyReflection $property, mixed $value, When $when): void
+    {
+        if (!property_exists($entity, $when->field)) {
+            return;
+        }
+
+        $triggerValue = $entity->{$when->field};
+
+        if ($triggerValue !== $when->equals) {
+            return;
+        }
+
+        $key = $property->getName();
+        $rules = is_array($when->rules) ? $when->rules : [$when->rules];
+        foreach ($rules as $rule) {
+            if (!$rule->validate($value)) {
+                if (!$this->batch) {
+                    throw new ValidateException($rule->message);
+                }
+                $this->error[$key][] = $rule->message;
+            }
         }
     }
 }

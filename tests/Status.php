@@ -6,26 +6,15 @@
 // +----------------------------------------------------------------------
 // | Author: 原点 <467490186@qq.com>
 // +----------------------------------------------------------------------
-// | Date: 2024/6/5
+// | Date: 2025/12/5
 // +----------------------------------------------------------------------
 
-declare (strict_types=1);
+namespace yuandian\Validation\Tests;
 
-namespace yuandian\Validation\Rules;
-
-use Attribute;
-use yuandian\Validation\Rule;
-
-#[Attribute(Attribute::TARGET_PROPERTY)]
-class NotEmpty implements Rule
+enum Status
 {
-    public function __construct(public string $message = "This value should not be blank.")
-    {
-    }
-
-    public function validate(mixed $value): bool
-    {
-        return !empty($value);
-    }
+    case AAA;
+    case BBB;
+    case CCC;
 
 }

@@ -23,7 +23,8 @@ class ValidateException extends \RuntimeException
     public function __construct($error)
     {
         $this->error = $error;
-        $this->message = is_array($error) ? implode(PHP_EOL, $error) : $error;
+        $this->message = is_array($error) ? $this->formatErrors($error) : $error;
+        parent::__construct($this->message);
     }
 
     /**
@@ -34,5 +35,27 @@ class ValidateException extends \RuntimeException
     public function getError(): array|string
     {
         return $this->error;
+    }
+
+    /**
+     * 格式化错误信息
+     * @param array $errors
+     * @return string
+     * @date 2025/12/5 下午5:21
+     * @author 原点 467490186@qq.com
+     */
+    protected function formatErrors(array $errors): string
+    {
+        $result = [];
+
+        foreach ($errors as $field => $messages) {
+            if (is_array($messages)) {
+                $result[] = $field . ': ' . implode(', ', $messages);
+            } else {
+                $result[] = $field . ': ' . $messages;
+            }
+        }
+
+        return implode('; ', $result);
     }
 }
