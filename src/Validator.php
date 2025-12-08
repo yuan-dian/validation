@@ -154,7 +154,7 @@ class Validator
                 $this->validateEach($key, $value, $rule);
                 continue;
             }
-            // 拦截 Each
+            // 拦截 When
             if ($rule instanceof When) {
                 $this->validateWhen($entity, $property, $value, $rule);
                 continue;
